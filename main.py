@@ -85,9 +85,12 @@ if __name__ == '__main__':
     history = download_history(url)
     percentages = get_mda(history)
 
+    email_contents = ''
     for i in percentages:
 
         if i > 10.0:
-            print(f"{i}     sell")
+            email_contents = f"{email_contents}\n {i}     sell"
         elif i < 0:
-            print(f"{i}     buy")
+            email_contents = f"{email_contents}\n {i}     buy"
+
+    send_email(email_contents)
