@@ -10,6 +10,8 @@ indicator :   (close-20DMA)/close
 if the indicator rises above 10%, then sell
 If the indicator decline below 0% then buy
 """
+
+
 from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 import numpy
@@ -36,6 +38,8 @@ def download_history(url):
     #flip the array so the last index is the most recent
     return all_close[::-1]
 
+
+
 #construct 20 day MDA
 def get_mda(history):
 
@@ -54,10 +58,12 @@ def get_mda(history):
         return percentages
 
 
+
 #Calculate the distance of the close from the moving average stated as a percentage.
 #indicator :   (close-20DMA)/close
 def calculate_percentage(close, mda):
     return (float(close - mda) / float(close)) * 100
+
 
 
 def send_email(email_contents):
@@ -89,8 +95,8 @@ if __name__ == '__main__':
     for i in percentages:
 
         if i > 10.0:
-            email_contents = f"{email_contents}\n {i}     sell"
+            email_contents = f"{email_contents}\n {round(i, 2)}     sell"
         elif i < 0:
-            email_contents = f"{email_contents}\n {i}     buy"
+            email_contents = f"{email_contents}\n {round(i, 2)}     buy"
 
     send_email(email_contents)
