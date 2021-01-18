@@ -25,18 +25,20 @@ def download_history(url):
     page = BeautifulSoup(session.text, features='lxml')
     data = page.find_all("tr", class_="BdT Bdc($seperatorColor) Ta(end) Fz(s) Whs(nw)")
 
-    all_close = []
+    close = []
+    dates = []
     for i in data:
 
         entries = i.find_all("td")
         try:
             #4 is close
-            all_close.append(float(entries[4].text))
+            close.append(float(entries[4].text))
+            dates.append(entries[0].text)
         except:
             pass
 
     #flip the array so the last index is the most recent
-    return all_close[::-1]
+    return close[::-1], dates[::-1]
 
 
 
@@ -88,15 +90,18 @@ def send_email(email_contents):
 #If the indicator decline below 0% then buy
 if __name__ == '__main__':
     url = "https://finance.yahoo.com/quote/UVXY/history?p=UVXY"
-    history = download_history(url)
+    history, dates = download_history(url)
     percentages = get_mda(history)
 
     email_contents = ''
-    for i in percentages:
+
+    #the mda is 20, so we remove the first 20 indices from the array to match the dates up
+    dates = dates[20:]
+    for i in range(0, len(percentages)):
 
         if i > 10.0:
-            email_contents = f"{email_contents}\n {round(i, 2)}     sell"
+            email_contents = f"{email_contents}\n {dates[i]} {round(percentages[i], 2)}     sell"
         elif i < 0:
-            email_contents = f"{email_contents}\n {round(i, 2)}     buy"
+            email_contents = f"{email_contents}\n {dates[i]} {round(percentages[i], 2)}     buy"
 
     send_email(email_contents)
