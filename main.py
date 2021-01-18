@@ -25,13 +25,10 @@ def download_history(url):
     page = BeautifulSoup(session.text, features='lxml')
     data = page.find_all("tr", class_="BdT Bdc($seperatorColor) Ta(end) Fz(s) Whs(nw)")
 
-    close = []
-    dates = []
+    close, dates = [], []
     for i in data:
-
         entries = i.find_all("td")
         try:
-            #4 is close
             close.append(float(entries[4].text))
             dates.append(entries[0].text)
         except:
@@ -48,9 +45,10 @@ def get_mda(history):
         percentages = []
         for i in range(20, len(history)):
             mda = []
-            for j in range(i - 20, i):
-                if history[j] != None:
-                    mda.append(history[j])
+
+            #19 days before plus today
+            for j in range(i - 19, i + 1):
+                mda.append(history[j])
 
             mda_average = numpy.average(mda)
 
@@ -97,11 +95,15 @@ if __name__ == '__main__':
 
     #the mda is 20, so we remove the first 20 indices from the array to match the dates up
     dates = dates[20:]
-    for i in range(0, len(percentages)):
+    prev = percentages[0]
+    for i in range(1, len(percentages)):
 
-        if i > 10.0:
+        if percentages[i] > 10.0 and prev < 10.0:
             email_contents = f"{email_contents}\n {dates[i]} {round(percentages[i], 2)}     sell"
-        elif i < 0:
+        elif percentages[i] < 0 and prev > 0:
             email_contents = f"{email_contents}\n {dates[i]} {round(percentages[i], 2)}     buy"
+        else:
+            email_contents = f"{email_contents}\n {dates[i]} {round(percentages[i], 2)}"
+        prev = percentages[i]
 
     send_email(email_contents)
