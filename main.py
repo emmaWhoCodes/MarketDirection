@@ -13,6 +13,8 @@ If the indicator decline below 0% then buy
 from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 import numpy
+import config
+import smtplib
 
 #download the history of uvxy from yahoo.
 #last index is most recent
@@ -58,20 +60,34 @@ def calculate_percentage(close, mda):
     return (float(close - mda) / float(close)) * 100
 
 
-def send_email():
-    pass
+def send_email(email_contents):
+    smtp_server = "smtp.gmail.com"
+    content =  f'SUBJECT: {config.message}\n\n{email_contents}'
+    server = smtplib.SMTP(smtp_server, 587)
+    try:
+        server.ehlo()
+        server.starttls()
+
+        server.login(config.username, config.password)
+        server.sendmail(config.sender, config.recipients, content)
+        server.close()
+
+    except Exception as e:
+        print(e)
+        server.close()
+
+
 
 #if the indicator rises above 10%, then sell
 #If the indicator decline below 0% then buy
 if __name__ == '__main__':
     url = "https://finance.yahoo.com/quote/UVXY/history?p=UVXY"
     history = download_history(url)
-    print(history)
     percentages = get_mda(history)
 
     for i in percentages:
-        print(i)
+
         if i > 10.0:
-            print("sell")
+            print(f"{i}     sell")
         elif i < 0:
-            print("buy")
+            print(f"{i}     buy")
